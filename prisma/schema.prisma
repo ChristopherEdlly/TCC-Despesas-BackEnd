@@ -5,95 +5,98 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 model Usuario {
-  id                Int                @id @default(autoincrement())
-  nome              String
-  email             String             @unique
-  senha             String
-  categoriaReceitas CategoriaReceita[]
-  categoriaDespesas CategoriaDespesa[]
-  usuarioPainel     UsuarioPainel[]
+    id                Int                @id @default(autoincrement())
+    nome              String
+    email             String             @unique
+    senha             String
+    categoriaReceitas CategoriaReceita[]
+    categoriaDespesas CategoriaDespesa[]
+    usuarioPainel     UsuarioPainel[]
+    Painel            Painel[]
 }
 
 model Painel {
-  id            Int             @id @default(autoincrement())
-  nome          String
-  descricao     String?
-  usuarioPainel UsuarioPainel[]
-  receitas      Receita[]
-  despesas      Despesa[]
+    id            Int             @id @default(autoincrement())
+    nome          String
+    descricao     String?
+    usuarioId     Int
+    usuario       Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    usuarioPainel UsuarioPainel[]
+    receitas      Receita[]
+    despesas      Despesa[]
 }
 
 model UsuarioPainel {
-  id        Int     @id @default(autoincrement())
-  permissao String
-  usuarioId Int
-  painelId  Int
-  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  painel    Painel  @relation(fields: [painelId], references: [id], onDelete: Cascade)
+    id        Int     @id @default(autoincrement())
+    permissao String
+    usuarioId Int
+    painelId  Int
+    usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    painel    Painel  @relation(fields: [painelId], references: [id], onDelete: Cascade)
 
-  @@unique([usuarioId, painelId])
+    @@unique([usuarioId, painelId])
 }
 
 model CategoriaReceita {
-  id        Int       @id @default(autoincrement())
-  nome      String
-  usuarioId Int
-  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  receitas  Receita[]
+    id        Int       @id @default(autoincrement())
+    nome      String
+    usuarioId Int
+    usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    receitas  Receita[]
 }
 
 model Receita {
-  id                 Int              @id @default(autoincrement())
-  valor              Decimal          @db.Decimal(10, 2)
-  descricao          String?
-  dataRecebimento    DateTime
-  painelId           Int
-  categoriaReceitaId Int
-  painel             Painel           @relation(fields: [painelId], references: [id], onDelete: Cascade)
-  categoriaReceita   CategoriaReceita @relation(fields: [categoriaReceitaId], references: [id], onDelete: Cascade)
+    id                 Int              @id @default(autoincrement())
+    valor              Decimal          @db.Decimal(10, 2)
+    descricao          String?
+    dataRecebimento    DateTime
+    painelId           Int
+    categoriaReceitaId Int
+    painel             Painel           @relation(fields: [painelId], references: [id], onDelete: Cascade)
+    categoriaReceita   CategoriaReceita @relation(fields: [categoriaReceitaId], references: [id], onDelete: Cascade)
 }
 
 model GrupoDespesa {
-  id                Int                @id @default(autoincrement())
-  nome              String
-  categoriaDespesas CategoriaDespesa[]
+    id                Int                @id @default(autoincrement())
+    nome              String
+    categoriaDespesas CategoriaDespesa[]
 }
 
 model CategoriaDespesa {
-  id             Int           @id @default(autoincrement())
-  nome           String
-  usuarioId      Int
-  grupoDespesaId Int?
-  usuario        Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  grupoDespesa   GrupoDespesa? @relation(fields: [grupoDespesaId], references: [id], onDelete: SetNull)
-  despesas       Despesa[]
+    id             Int           @id @default(autoincrement())
+    nome           String
+    usuarioId      Int
+    grupoDespesaId Int?
+    usuario        Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    grupoDespesa   GrupoDespesa? @relation(fields: [grupoDespesaId], references: [id], onDelete: SetNull)
+    despesas       Despesa[]
 }
 
 model Despesa {
-  id                 Int              @id @default(autoincrement())
-  valor              Decimal          @db.Decimal(10, 2)
-  descricao          String?
-  painelId           Int
-  categoriaDespesaId Int
-  painel             Painel           @relation(fields: [painelId], references: [id], onDelete: Cascade)
-  categoriaDespesa   CategoriaDespesa @relation(fields: [categoriaDespesaId], references: [id], onDelete: Cascade)
-  contasAPagar       ContaAPagar[]
+    id                 Int              @id @default(autoincrement())
+    valor              Decimal          @db.Decimal(10, 2)
+    descricao          String?
+    painelId           Int
+    categoriaDespesaId Int
+    painel             Painel           @relation(fields: [painelId], references: [id], onDelete: Cascade)
+    categoriaDespesa   CategoriaDespesa @relation(fields: [categoriaDespesaId], references: [id], onDelete: Cascade)
+    contasAPagar       ContaAPagar[]
 }
 
 model ContaAPagar {
-  id              Int      @id @default(autoincrement())
-  valor           Decimal  @db.Decimal(10, 2)
-  dataVencimento  DateTime
-  statusPagamento String
-  despesaId       Int
-  despesa         Despesa  @relation(fields: [despesaId], references: [id], onDelete: Cascade)
+    id              Int      @id @default(autoincrement())
+    valor           Decimal  @db.Decimal(10, 2)
+    dataVencimento  DateTime
+    statusPagamento String
+    despesaId       Int
+    despesa         Despesa  @relation(fields: [despesaId], references: [id], onDelete: Cascade)
 }

@@ -6,6 +6,7 @@ import {
     Patch,
     Param,
     Delete,
+    Query,
 } from '@nestjs/common';
 import { PainelService } from './painel.service';
 import { CreatePainelDto } from './dto/create-painel.dto';
@@ -16,27 +17,26 @@ export class PainelController {
     constructor(private readonly painelService: PainelService) {}
 
     @Post()
-    create(@Body() createPainelDto: CreatePainelDto) {
-        return this.painelService.create(createPainelDto);
+    async criarPainel(@Body() data: CreatePainelDto) {
+        return this.painelService.criarPainel(data);
     }
 
     @Get()
-    findAll() {
-        return this.painelService.findAll();
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.painelService.findOne(+id);
+    async listarPaineis(
+        @Query('usuarioId') usuarioId: string,
+        @Query('nome') nome?: string,
+    ) {
+        const parsedUsuarioId = parseInt(usuarioId, 10);
+        return this.painelService.listarPaineisDoUsuario(parsedUsuarioId, nome);
     }
 
     @Patch(':id')
     update(@Param('id') id: string, @Body() updatePainelDto: UpdatePainelDto) {
-        return this.painelService.update(+id, updatePainelDto);
+        return this.painelService.atualizarPainel(+id, updatePainelDto);
     }
 
     @Delete(':id')
     remove(@Param('id') id: string) {
-        return this.painelService.remove(+id);
+        return this.painelService.removerPainel(+id);
     }
 }

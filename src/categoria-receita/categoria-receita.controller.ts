@@ -16,35 +16,4 @@ export class CategoriaReceitaController {
     constructor(
         private readonly categoriaReceitaService: CategoriaReceitaService,
     ) {}
-
-    @Post()
-    create(@Body() createCategoriaReceitaDto: CreateCategoriaReceitaDto) {
-        return this.categoriaReceitaService.create(createCategoriaReceitaDto);
-    }
-
-    @Get()
-    findAll() {
-        return this.categoriaReceitaService.findAll();
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.categoriaReceitaService.findOne(+id);
-    }
-
-    @Patch(':id')
-    update(
-        @Param('id') id: string,
-        @Body() updateCategoriaReceitaDto: UpdateCategoriaReceitaDto,
-    ) {
-        return this.categoriaReceitaService.update(
-            +id,
-            updateCategoriaReceitaDto,
-        );
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.categoriaReceitaService.remove(+id);
-    }
 }

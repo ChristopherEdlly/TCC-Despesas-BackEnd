@@ -3,18 +3,18 @@ import { PainelController } from './painel.controller';
 import { PainelService } from './painel.service';
 
 describe('PainelController', () => {
-  let controller: PainelController;
+    let controller: PainelController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [PainelController],
-      providers: [PainelService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [PainelController],
+            providers: [PainelService],
+        }).compile();
 
-    controller = module.get<PainelController>(PainelController);
-  });
+        controller = module.get<PainelController>(PainelController);
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

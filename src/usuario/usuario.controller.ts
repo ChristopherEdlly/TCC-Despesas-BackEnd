@@ -20,6 +20,11 @@ export class UsuarioController {
         return this.usuarioService.criarUsuario(data);
     }
 
+    @Post('login')
+    async login(@Body() data: { email: string; senha: string }) {
+        return this.usuarioService.autenticarUsuario(data.email, data.senha);
+    }
+
     @Get()
     async findAll() {
         return this.usuarioService.listarUsuarios();

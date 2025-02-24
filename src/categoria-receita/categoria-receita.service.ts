@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoriaReceitaDto } from './dto/create-categoria-receita.dto';
 import { UpdateCategoriaReceitaDto } from './dto/update-categoria-receita.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CategoriaReceitaService {
-    create(createCategoriaReceitaDto: CreateCategoriaReceitaDto) {
-        return 'This action adds a new categoriaReceita';
+    constructor(private prisma: PrismaService) {}
+
+    async criarCategoriaReceita(data: CreateCategoriaReceitaDto) {
+        return this.prisma.categoriaReceita.create({ data });
     }
 
-    findAll() {
-        return `This action returns all categoriaReceita`;
+    async listarCategoriasReceita() {
+        return this.prisma.categoriaReceita.findMany();
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} categoriaReceita`;
+    async buscarCategoriaReceita(id: number) {
+        return this.prisma.categoriaReceita.findUnique({ where: { id } });
     }
 
-    update(id: number, updateCategoriaReceitaDto: UpdateCategoriaReceitaDto) {
-        return `This action updates a #${id} categoriaReceita`;
+    async atualizarCategoriaReceita(id: number, data: UpdateCategoriaReceitaDto) {
+        return this.prisma.categoriaReceita.update({ where: { id }, data });
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} categoriaReceita`;
+    async removerCategoriaReceita(id: number) {
+        return this.prisma.categoriaReceita.delete({ where: { id } });
     }
 }

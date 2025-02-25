@@ -11,13 +11,10 @@ export class CategoriaReceitaService {
         return this.prisma.categoriaReceita.create({ data });
     }
 
-    async listarCategoriasReceita() {
-        return this.prisma.categoriaReceita.findMany();
+    async listarCategoriasReceitaPorUsuario(id: number) {
+        return this.prisma.categoriaReceita.findMany({ where: { usuarioId: id } });
     }
-
-    async buscarCategoriaReceita(id: number) {
-        return this.prisma.categoriaReceita.findUnique({ where: { id } });
-    }
+   
 
     async atualizarCategoriaReceita(id: number, data: UpdateCategoriaReceitaDto) {
         return this.prisma.categoriaReceita.update({ where: { id }, data });

@@ -22,9 +22,11 @@ export class CategoriaReceitaController {
         return this.categoriaReceitaService.criarCategoriaReceita(data);
     }
 
-    @Get(':id')
-    listarCategoriasReceitaPorUsuario(@Param('id') id: number) {
-        return this.categoriaReceitaService.listarCategoriasReceitaPorUsuario(id);
+    @Get(':usuarioId')
+    listarCategoriasReceitaPorUsuario(@Param('usuarioId') usuarioId: string) {
+        return this.categoriaReceitaService.listarCategoriasReceitaPorUsuario(
+            +usuarioId,
+        );
     }
 
     @Patch(':id')
@@ -39,5 +41,4 @@ export class CategoriaReceitaController {
     removerCategoriaReceita(@Param('id') id: number) {
         return this.categoriaReceitaService.removerCategoriaReceita(id);
     }
-    
 }

@@ -14,4 +14,24 @@ import { UpdateDespesaGrupoDto } from './dto/update-despesa-grupo.dto';
 @Controller('despesa-grupo')
 export class DespesaGrupoController {
     constructor(private readonly despesaGrupoService: DespesaGrupoService) {}
+
+    @Post()
+    create(@Body() createDespesaGrupoDto: CreateDespesaGrupoDto) {
+        return this.despesaGrupoService.create(createDespesaGrupoDto);
+    }
+
+    @Get(':usuarioId')
+    buscarPorUsuarioId(@Param('usuarioId') usuarioId: string) {
+        return this.despesaGrupoService.BuscarPorUsuarioId(+usuarioId);
+    }
+
+    @Patch(':id')
+    atualizar(@Param('id') id: string, @Body() data: UpdateDespesaGrupoDto) {
+        return this.despesaGrupoService.Atualizar(+id, data);
+    }
+
+    @Delete(':id')
+    deletar(@Param('id') id: string) {
+        return this.despesaGrupoService.Deletar(+id);
+    }
 }

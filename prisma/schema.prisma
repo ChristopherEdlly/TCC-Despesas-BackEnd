@@ -20,6 +20,7 @@ model Usuario {
     senha             String
     categoriaReceitas CategoriaReceita[]
     categoriaDespesas CategoriaDespesa[]
+    grupoDespesas     GrupoDespesa[]
     usuarioPainel     UsuarioPainel[]
     Painel            Painel[]
 }
@@ -68,6 +69,8 @@ model Receita {
 model GrupoDespesa {
     id                Int                @id @default(autoincrement())
     nome              String
+    usuarioId         Int
+    usuario           Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
     categoriaDespesas CategoriaDespesa[]
 }
 

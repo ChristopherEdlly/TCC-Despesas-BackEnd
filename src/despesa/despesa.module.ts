@@ -3,7 +3,7 @@ import { DespesaService } from './despesa.service';
 import { DespesaController } from './despesa.controller';
 
 @Module({
-  controllers: [DespesaController],
-  providers: [DespesaService],
+    controllers: [DespesaController],
+    providers: [DespesaService],
 })
 export class DespesaModule {}

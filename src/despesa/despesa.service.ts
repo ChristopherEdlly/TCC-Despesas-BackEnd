@@ -8,18 +8,13 @@ export class DespesaService {
     constructor(private prisma: PrismaService) {}
 
     async create(data: CreateDespesaDto) {
+        data.dataCompra = new Date(data.dataCompra);
         return this.prisma.despesa.create({ data });
     }
 
-    async buscarPorPeinelId(painelId: number) {
+    async buscarPorPainelId(painelId: number) {
         return this.prisma.despesa.findMany({
             where: { painelId },
-        });
-    }
-
-    async buscarPorDespesaCategoriaId(categoriaDespesaId: number) {
-        return this.prisma.despesa.findMany({
-            where: { categoriaDespesaId },
         });
     }
 
@@ -42,7 +37,7 @@ export class DespesaService {
         });
     }
 
-    async buscarPorPainelIdEDespesaCategoriaId(
+    async buscarPorPainelIdECategoriaDespesaId(
         painelId: number,
         categoriaDespesaId: number,
     ) {

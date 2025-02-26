@@ -20,8 +20,37 @@ export class DespesaController {
         return this.despesaService.create(createDespesaDto);
     }
 
-    @Get('painel/:painelId')
-    buscarPorUsuarioId(@Param('painelId') painelId: string) {
-        return this.despesaService.buscarPorUsuarioId(+painelId);
+    @Get('PorDespesa/:id')
+    buscarPorId(@Param('id') id: string) {
+        return this.despesaService.buscarPorId(+id);
+    }
+
+    @Get('PorPainel/:painelId')
+    buscarPainelId(@Param('painelId') painelId: string) {
+        return this.despesaService.buscarPorPainelId(+painelId);
+    }
+
+    @Get('PorCategoria/:painelId/:categoriaDespesaId')
+    buscarPainelIdECategoriaDespesaId(
+        @Param('painelId') painelId: string,
+        @Param('categoriaDespesaId') categoriaDespesaId: string,
+    ) {
+        return this.despesaService.buscarPorPainelIdECategoriaDespesaId(
+            +painelId,
+            +categoriaDespesaId,
+        );
+    }
+
+    @Patch(':id')
+    update(
+        @Param('id') id: string,
+        @Body() updateDespesaDto: UpdateDespesaDto,
+    ) {
+        return this.despesaService.atualizar(+id, updateDespesaDto);
+    }
+
+    @Delete(':id')
+    remove(@Param('id') id: string) {
+        return this.despesaService.deletar(+id);
     }
 }

@@ -84,15 +84,16 @@ export class ContaPagarService {
         });
     }
 
-    async buscarDespesasComContasAPagar() {
+    async buscarDespesasComContasAPagarPorPainelId(painelId: number) {
         return this.prisma.despesa.findMany({
             where: {
+                painelId: painelId,
                 contasAPagar: {
-                    some: {}, // Retorna todas as despesas que possuem pelo menos uma conta a pagar vinculada
+                    some: {}, // Verifica se há pelo menos uma conta a pagar vinculada
                 },
             },
             include: {
-                contasAPagar: true, // Opcional: inclui os detalhes das contas a pagar vinculadas
+                contasAPagar: true,
             },
         });
     }

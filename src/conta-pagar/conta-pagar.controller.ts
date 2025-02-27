@@ -40,18 +40,20 @@ export class ContaPagarController {
         }
     }
 
-    @Get('buscarDespesasCOntasAPagar')
-    async buscarDespesasComContasAPagar() {
+    @Get('buscarDespesasAPagar/:PainelId')
+    async buscarDespesasContasAPagar(@Param('PainelId') PainelId: string) {
         try {
-            const despesas =
-                await this.contaPagarService.buscarDespesasComContasAPagar();
+            const contas =
+                await this.contaPagarService.buscarDespesasComContasAPagarPorPainelId(
+                    +PainelId,
+                );
             return {
-                message: 'Despesas com contas a pagar listadas com sucesso',
-                despesas,
+                message: 'Despesas e contas a pagar listadas com sucesso',
+                contas,
             };
         } catch (error: unknown) {
             return {
-                message: 'Erro ao listar despesas com contas a pagar',
+                message: 'Erro ao buscar despesas e contas a pagar',
                 error,
             };
         }

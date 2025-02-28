@@ -9,25 +9,35 @@ export class ContaPagarService {
 
     async criarContaAPagar(createContaAPagarDto: CreateContaAPagarDto) {
         const {
-            valor,
             statusPagamento,
             quantidadeParcelas,
             dataVencimento,
             despesaId,
         } = createContaAPagarDto;
 
+        // 🔹 Busca o valor da despesa no banco de dados
+        const despesa = await this.prisma.despesa.findUnique({
+            where: { id: despesaId },
+            select: { valor: true },
+        });
+
+        if (!despesa) {
+            throw new Error('Despesa não encontrada');
+        }
+
         const parcelas = this.calcularParcelas(
-            valor,
+            despesa.valor.toNumber(), // Usa o valor da despesa automaticamente
             quantidadeParcelas,
             dataVencimento,
         );
 
+        // 🔹 Cria as contas a pagar no banco
         const contas = await this.prisma.contaAPagar.createMany({
             data: parcelas.map((parcela) => ({
-                valor: parcela.valor,
+                valor: parcela.valor, // Cada parcela recebe o valor calculado
                 dataVencimento: parcela.dataVencimento,
-                statusPagamento, // Status de pagamento
-                despesaId, // Incluindo o despesaId
+                statusPagamento,
+                despesaId,
             })),
         });
 
@@ -41,14 +51,14 @@ export class ContaPagarService {
     ) {
         const valorParcela = valorTotal / quantidadeParcelas;
         const parcelas: { valor: number; dataVencimento: string }[] = [];
-        const vencimento = new Date(dataVencimento); // Usando a data de vencimento informada
+        const vencimento = new Date(dataVencimento);
 
         for (let i = 0; i < quantidadeParcelas; i++) {
             const novaDataVencimento = new Date(vencimento);
-            novaDataVencimento.setMonth(vencimento.getMonth() + i); // Ajusta o mês para as parcelas seguintes
+            novaDataVencimento.setMonth(vencimento.getMonth() + i);
 
             parcelas.push({
-                valor: valorParcela,
+                valor: valorParcela, // Cada parcela recebe a divisão correta
                 dataVencimento: novaDataVencimento.toISOString(),
             });
         }

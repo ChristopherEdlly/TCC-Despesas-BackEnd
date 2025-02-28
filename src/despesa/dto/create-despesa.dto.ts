@@ -1,10 +1,17 @@
+import { Decimal } from '@prisma/client/runtime/library';
 import { Type } from 'class-transformer';
-import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+    IsDate,
+    IsDecimal,
+    IsNotEmpty,
+    IsNumber,
+    IsString,
+} from 'class-validator';
 
 export class CreateDespesaDto {
-    @IsNumber()
+    @IsDecimal()
     @IsNotEmpty()
-    valor: number;
+    valor: Decimal;
 
     @IsString()
     descricao: string;

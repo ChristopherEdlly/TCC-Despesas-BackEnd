@@ -53,4 +53,9 @@ export class DespesaController {
     remove(@Param('id') id: string) {
         return this.despesaService.deletar(+id);
     }
+
+    @Get(':data')
+    async obterTotalDespesasAteData(@Param('data') data: string) {
+        return this.despesaService.calcularTotalDespesasAteData(data);
+    }
 }

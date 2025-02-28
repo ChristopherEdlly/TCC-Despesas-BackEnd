@@ -48,4 +48,24 @@ export class DespesaService {
             },
         });
     }
+
+    async calcularTotalDespesasAteData(data: string): Promise<number> {
+        const dataFinal = new Date(data);
+
+        // 1️⃣ Buscar despesas diretas (dataCompra até a data fornecida)
+        const despesas = await this.prisma.despesa.findMany({
+            where: {
+                dataCompra: { lte: dataFinal }, // Somente despesas até a data limite
+            },
+            select: { valor: true },
+        });
+
+        // 🔢 Somar valores das despesas diretas
+        const totalDespesas = despesas.reduce(
+            (acc, despesa) => acc + Number(despesa.valor),
+            0,
+        );
+
+        return totalDespesas;
+    }
 }

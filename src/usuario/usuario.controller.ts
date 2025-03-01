@@ -7,7 +7,6 @@ import {
     Patch,
     Post,
 } from '@nestjs/common';
-import { CreateUsuarioDto } from './dto/create-usuario.dto.js';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
 import { UsuarioService } from './usuario.service';
 
@@ -15,19 +14,12 @@ import { UsuarioService } from './usuario.service';
 export class UsuarioController {
     constructor(private readonly usuarioService: UsuarioService) {}
 
-    @Post()
-    async create(@Body() data: CreateUsuarioDto) {
-        return this.usuarioService.criarUsuario(data);
-    }
-
-    @Post('login')
-    async login(@Body() data: { email: string; senha: string }) {
-        return this.usuarioService.autenticarUsuario(data.email, data.senha);
-    }
-
-    @Get()
-    async findAll() {
-        return this.usuarioService.listarUsuarios();
+    @Post('criar')
+    async criarUsuario(
+        @Body() body: { email: string; senha: string; nome: string },
+    ) {
+        const usuario = await this.usuarioService.criarUsuario(body);
+        return usuario;
     }
 
     @Get(':nome')

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -8,23 +7,12 @@ import * as bcrypt from 'bcrypt';
 export class UsuarioService {
     constructor(private prisma: PrismaService) {}
 
-    async criarUsuario(data: CreateUsuarioDto) {
+    async criarUsuario(data: { email: string; senha: string; nome: string }) {
         const senhaCriptografada = await bcrypt.hash(data.senha, 10);
         data.senha = senhaCriptografada;
-        return this.prisma.usuario.create({ data });
-    }
-
-    async autenticarUsuario(email: string, senha: string) {
-        return this.prisma.usuario.findFirst({
-            where: {
-                email,
-                senha,
-            },
+        return this.prisma.usuario.create({
+            data,
         });
-    }
-
-    async listarUsuarios() {
-        return this.prisma.usuario.findMany();
     }
 
     async buscarUsuarioPorNome(nome: string) {

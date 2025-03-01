@@ -97,4 +97,10 @@ export class ReceitaService {
 
         return saldoTotal;
     }
+
+    async buscarPorId(id: number) {
+        return this.prisma.receita.findUnique({
+            where: { id },
+        });
+    }
 }

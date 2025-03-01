@@ -1,3 +1,4 @@
+import { PainelController } from './../../painel/painel.controller';
 import { Decimal } from '@prisma/client/runtime/library';
 import { Type } from 'class-transformer';
 import {

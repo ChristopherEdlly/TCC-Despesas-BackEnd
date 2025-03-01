@@ -1,99 +1,148 @@
 import {
-    Body,
     Controller,
-    Delete,
     Get,
-    Param,
-    Patch,
     Post,
+    Body,
+    Patch,
+    Param,
+    Delete,
+    UseGuards,
+    Req,
+    NotFoundException,
+    ForbiddenException,
 } from '@nestjs/common';
 import { ContaPagarService } from './conta-pagar.service';
+import { DespesaService } from '../despesa/despesa.service'; // Importando o DespesaService
 import { CreateContaAPagarDto } from './dto/create-conta-pagar.dto';
+import { UpdateContaPagarDto } from './dto/update-conta-pagar.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { PainelService } from '../painel/painel.service'; // Importando o PainelService
+import { UsuarioPainelService } from '../usuario-painel/usuario-painel.service'; // Serviço para verificar os convites
 
-@Controller('contaPagar')
+@UseGuards(AuthGuard)
+@Controller('conta-pagar')
 export class ContaPagarController {
-    constructor(private readonly contaPagarService: ContaPagarService) {}
+    constructor(
+        private readonly contaPagarService: ContaPagarService,
+        private readonly despesaService: DespesaService, // Injeta o DespesaService
+        private readonly painelService: PainelService, // Injeta o PainelService
+        private readonly usuarioPainelService: UsuarioPainelService, // Injeta o UsuarioPainelService
+    ) {}
 
     @Post()
-    async criar(@Body() createContaAPagarDto: CreateContaAPagarDto) {
-        try {
-            const contas =
-                await this.contaPagarService.criarContaAPagar(
-                    createContaAPagarDto,
-                );
-            return { message: 'Contas a pagar criadas com sucesso', contas };
-        } catch (error: unknown) {
-            return { message: 'Erro ao criar contas a pagar', error };
-        }
-    }
-
-    @Get('listarPorDespesaId/:despesaId')
-    async listarPorDespesaId(@Param('despesaId') despesaId: string) {
-        try {
-            const contas =
-                await this.contaPagarService.listarContasAPagarPorDespesaId(
-                    +despesaId,
-                );
-            return { message: 'Contas a pagar listadas com sucesso', contas };
-        } catch (error: unknown) {
-            return { message: 'Erro ao listar contas a pagar', error };
-        }
-    }
-
-    @Get('buscarDespesasAPagar/:PainelId')
-    async buscarDespesasContasAPagar(@Param('PainelId') PainelId: string) {
-        try {
-            const contas =
-                await this.contaPagarService.buscarDespesasComContasAPagarPorPainelId(
-                    +PainelId,
-                );
-            return {
-                message: 'Despesas e contas a pagar listadas com sucesso',
-                contas,
-            };
-        } catch (error: unknown) {
-            return {
-                message: 'Erro ao buscar despesas e contas a pagar',
-                error,
-            };
-        }
-    }
-
-    @Patch('atualizarContaAPagar/:contaId')
-    async atualizarContaAPagar(
-        @Param('contaId') contaId: string,
-        @Body() updateContaAPagarDto: CreateContaAPagarDto,
+    async create(
+        @Body() createContaAPagarDto: CreateContaAPagarDto,
+        @Req() req,
     ) {
-        try {
-            const conta = await this.contaPagarService.atualizarContaAPagar(
-                +contaId,
-                updateContaAPagarDto,
-            );
-            return { message: 'Conta a pagar atualizada com sucesso', conta };
-        } catch (error: unknown) {
-            return { message: 'Erro ao atualizar conta a pagar', error };
+        const usuarioId = req.user.sub;
+
+        const despesa = await this.despesaService.buscarPorId(
+            createContaAPagarDto.despesaId,
+        );
+        if (!despesa) {
+            throw new NotFoundException('Despesa não encontrada.');
         }
+
+        const painel = await this.painelService.buscarPorId(despesa.painelId);
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado.');
+        }
+
+        if (painel.usuarioId !== usuarioId) {
+            const usuarioNoPainel =
+                await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                    painel.id,
+                    usuarioId,
+                );
+            if (!usuarioNoPainel) {
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para acessar este painel.',
+                );
+            }
+        }
+        return this.contaPagarService.create(createContaAPagarDto);
     }
 
-    @Delete('deletarPorDespesaId/:despesaId')
-    async deletarPorDespesaId(@Param('despesaId') despesaId: string) {
-        try {
-            await this.contaPagarService.deletarContasAPagarPorDespesaId(
-                +despesaId,
+    @Get(':id')
+    async findOne(@Param('id') id: string, @Req() req) {
+        const usuarioId = req.user.sub;
+        const contaAPagar = await this.contaPagarService.findOne(+id);
+        if (!contaAPagar) {
+            throw new NotFoundException(
+                `Conta a pagar com id ${id} não encontrada.`,
             );
-            return { message: 'Contas a pagar deletadas com sucesso' };
-        } catch (error: unknown) {
-            return { message: 'Erro ao deletar contas a pagar', error };
         }
+
+        // Verifica se o painel da conta a pagar pertence ao usuário ou se o usuário é um convidado
+        const despesa = await this.despesaService.buscarPorId(
+            contaAPagar.despesaId,
+        );
+        if (!despesa) {
+            throw new NotFoundException('Despesa não encontrada.');
+        }
+        const painel = await this.painelService.buscarPorId(despesa.painelId);
+        if (!painel || painel.usuarioId !== usuarioId) {
+            throw new ForbiddenException(
+                'Usuário não tem permissão para acessar esta conta a pagar.',
+            );
+        }
+
+        return contaAPagar;
     }
 
-    @Delete('deletarContaAPagar/:contaId')
-    async deletarContaAPagar(@Param('contaId') contaId: string) {
-        try {
-            await this.contaPagarService.deletarContaAPagar(+contaId);
-            return { message: 'Conta a pagar deletada com sucesso' };
-        } catch (error: unknown) {
-            return { message: 'Erro ao deletar conta a pagar', error };
+    @Patch(':id')
+    async update(
+        @Param('id') id: string,
+        @Body() updateContaPagarDto: UpdateContaPagarDto,
+        @Req() req,
+    ) {
+        const usuarioId = req.user.sub;
+        const contaAPagar = await this.contaPagarService.findOne(+id);
+        if (!contaAPagar) {
+            throw new NotFoundException(
+                `Conta a pagar com id ${id} não encontrada.`,
+            );
         }
+
+        const despesa = await this.despesaService.buscarPorId(
+            contaAPagar.despesaId,
+        );
+        if (!despesa) {
+            throw new NotFoundException('Despesa não encontrada.');
+        }
+        const painel = await this.painelService.buscarPorId(despesa.painelId);
+        if (!painel || painel.usuarioId !== usuarioId) {
+            throw new ForbiddenException(
+                'Usuário não tem permissão para editar esta conta a pagar.',
+            );
+        }
+
+        return this.contaPagarService.update(+id, updateContaPagarDto);
+    }
+
+    @Delete(':id')
+    async remove(@Param('id') id: string, @Req() req) {
+        const usuarioId = req.user.sub;
+        const contaAPagar = await this.contaPagarService.findOne(+id);
+        if (!contaAPagar) {
+            throw new NotFoundException(
+                `Conta a pagar com id ${id} não encontrada.`,
+            );
+        }
+
+        const despesa = await this.despesaService.buscarPorId(
+            contaAPagar.despesaId,
+        );
+        if (!despesa) {
+            throw new NotFoundException('Despesa não encontrada.');
+        }
+        const painel = await this.painelService.buscarPorId(despesa.painelId);
+        if (!painel || painel.usuarioId !== usuarioId) {
+            throw new ForbiddenException(
+                'Usuário não tem permissão para deletar esta conta a pagar.',
+            );
+        }
+
+        return this.contaPagarService.delete(+id);
     }
 }

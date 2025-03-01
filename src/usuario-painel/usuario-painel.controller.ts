@@ -21,11 +21,6 @@ export class UsuarioPainelController {
         return this.usuarioPainelService.adicionarUsuarioAoPainel(data);
     }
 
-    @Get()
-    findAll() {
-        return this.usuarioPainelService.findAll();
-    }
-
     @Get('/ListarUsuariosDoPainel/:id')
     listarUsuariosDoPainel(@Param('id') id: string) {
         return this.usuarioPainelService.listarUsuariosDoPainel(+id);

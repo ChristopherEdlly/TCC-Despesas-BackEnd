@@ -1,110 +1,103 @@
-import { UpdateContaPagarDto } from './dto/update-conta-pagar.dto';
-import { Injectable } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateContaAPagarDto } from './dto/create-conta-pagar.dto';
+import { UpdateContaPagarDto } from './dto/update-conta-pagar.dto';
+import { ContaAPagar } from '@prisma/client';
 
 @Injectable()
 export class ContaPagarService {
     constructor(private prisma: PrismaService) {}
 
-    async criarContaAPagar(createContaAPagarDto: CreateContaAPagarDto) {
+    async create(
+        createContaAPagarDto: CreateContaAPagarDto,
+    ): Promise<ContaAPagar[]> {
         const {
-            statusPagamento,
+            despesaId,
             quantidadeParcelas,
             dataVencimento,
-            despesaId,
+            statusPagamento,
         } = createContaAPagarDto;
 
-        // 🔹 Busca o valor da despesa no banco de dados
+        // Busca a despesa para obter o valor total
         const despesa = await this.prisma.despesa.findUnique({
             where: { id: despesaId },
-            select: { valor: true },
         });
-
         if (!despesa) {
-            throw new Error('Despesa não encontrada');
+            throw new NotFoundException('Despesa não encontrada.');
         }
 
-        const parcelas = this.calcularParcelas(
-            despesa.valor.toNumber(), // Usa o valor da despesa automaticamente
-            quantidadeParcelas,
-            dataVencimento,
-        );
+        if (quantidadeParcelas <= 0) {
+            throw new ForbiddenException(
+                'A quantidade de parcelas deve ser maior que zero.',
+            );
+        }
 
-        // 🔹 Cria as contas a pagar no banco
-        const contas = await this.prisma.contaAPagar.createMany({
-            data: parcelas.map((parcela) => ({
-                valor: parcela.valor, // Cada parcela recebe o valor calculado
-                dataVencimento: parcela.dataVencimento,
-                statusPagamento,
-                despesaId,
-            })),
-        });
+        // Calcula o valor de cada parcela
+        const valorParcela =
+            parseFloat(despesa.valor.toString()) / quantidadeParcelas;
+        const contasAPagar: ContaAPagar[] = [];
 
-        return contas;
-    }
-
-    private calcularParcelas(
-        valorTotal: number,
-        quantidadeParcelas: number,
-        dataVencimento: string,
-    ) {
-        const valorParcela = valorTotal / quantidadeParcelas;
-        const parcelas: { valor: number; dataVencimento: string }[] = [];
-        const vencimento = new Date(dataVencimento);
-
+        // Cria uma conta a pagar para cada parcela
         for (let i = 0; i < quantidadeParcelas; i++) {
-            const novaDataVencimento = new Date(vencimento);
-            novaDataVencimento.setMonth(vencimento.getMonth() + i);
+            const novaDataVencimento = new Date(dataVencimento);
+            // Incrementa o mês para cada parcela
+            novaDataVencimento.setMonth(novaDataVencimento.getMonth() + i);
 
-            parcelas.push({
-                valor: valorParcela, // Cada parcela recebe a divisão correta
-                dataVencimento: novaDataVencimento.toISOString(),
+            const novaConta = await this.prisma.contaAPagar.create({
+                data: {
+                    valor: valorParcela,
+                    dataVencimento: novaDataVencimento,
+                    statusPagamento,
+                    despesaId: despesa.id,
+                },
             });
+            contasAPagar.push(novaConta);
         }
 
-        return parcelas;
+        return contasAPagar;
     }
 
-    async listarContasAPagarPorDespesaId(despesaId: number) {
-        return this.prisma.contaAPagar.findMany({
-            where: { despesaId },
+    async findOne(id: number): Promise<ContaAPagar> {
+        const conta = await this.prisma.contaAPagar.findUnique({
+            where: { id },
         });
+        if (!conta) {
+            throw new NotFoundException('Conta a pagar não encontrada.');
+        }
+        return conta;
     }
 
-    async deletarContasAPagarPorDespesaId(despesaId: number) {
-        return this.prisma.contaAPagar.deleteMany({
-            where: { despesaId: despesaId },
+    async update(id: number, data: UpdateContaPagarDto): Promise<ContaAPagar> {
+        const conta = await this.prisma.contaAPagar.findUnique({
+            where: { id },
         });
-    }
-
-    async deletarContaAPagar(contaId: number) {
-        return this.prisma.contaAPagar.delete({
-            where: { id: contaId },
-        });
-    }
-
-    async atualizarContaAPagar(
-        contaId: number,
-        UpdateContaPagarDto: UpdateContaPagarDto,
-    ) {
+        if (!conta) {
+            throw new NotFoundException(
+                `Conta a pagar com id ${id} não encontrada.`,
+            );
+        }
         return this.prisma.contaAPagar.update({
-            where: { id: contaId },
-            data: UpdateContaPagarDto,
+            where: { id },
+            data,
         });
     }
 
-    async buscarDespesasComContasAPagarPorPainelId(painelId: number) {
-        return this.prisma.despesa.findMany({
-            where: {
-                painelId: painelId,
-                contasAPagar: {
-                    some: {}, // Verifica se há pelo menos uma conta a pagar vinculada
-                },
-            },
-            include: {
-                contasAPagar: true,
-            },
+    async delete(id: number): Promise<ContaAPagar> {
+        const conta = await this.prisma.contaAPagar.findUnique({
+            where: { id },
+        });
+        if (!conta) {
+            throw new NotFoundException(
+                `Conta a pagar com id ${id} não encontrada.`,
+            );
+        }
+        return this.prisma.contaAPagar.delete({
+            where: { id },
         });
     }
+
 }

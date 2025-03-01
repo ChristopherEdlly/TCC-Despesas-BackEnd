@@ -48,7 +48,16 @@ export class UsuarioPainelService {
         });
     }
 
-    async findAll() {
-        return this.prisma.usuarioPainel.findMany();
+    async verificarSeUsuarioNoPainel(
+        painelId: number,
+        usuarioId: number,
+    ): Promise<boolean> {
+        const usuarioPainel = await this.prisma.usuarioPainel.findFirst({
+            where: {
+                painelId,
+                usuarioId,
+            },
+        });
+        return !!usuarioPainel; // Retorna true se o usuário está no painel, caso contrário false
     }
 }

@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -15,7 +20,7 @@ export class PainelService {
             data: {
                 nome: data.nome,
                 descricao: data.descricao,
-                usuario: { connect: { id: data.usuarioId } }, // Faz a conversão aqui
+                usuario: { connect: { id: data.usuarioId } }, // Associa o painel ao usuário criador
             },
         });
     }
@@ -25,10 +30,10 @@ export class PainelService {
             return await this.prisma.painel.findMany({
                 where: {
                     OR: [
-                        { usuarioId: usuarioId }, // Painéis que o usuário criou
+                        { usuarioId: usuarioId }, // O painel pertence ao usuário
                         {
                             usuarioPainel: {
-                                some: { usuarioId: usuarioId }, // Painéis em que o usuário participa
+                                some: { usuarioId: usuarioId }, // O usuário é convidado no painel
                             },
                         },
                     ],
@@ -43,14 +48,62 @@ export class PainelService {
         }
     }
 
-    async atualizarPainel(id: number, data: Prisma.PainelUpdateInput) {
+    // Função para atualizar um painel
+    async atualizarPainel(
+        id: number,
+        data: Prisma.PainelUpdateInput,
+        usuarioId: number,
+    ) {
+        // Verifica se o usuário tem permissão para atualizar o painel
+        const painel = await this.prisma.painel.findUnique({ where: { id } });
+
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado');
+        }
+
+        // Se o usuário não for o criador do painel, verifica se ele é convidado
+        if (painel.usuarioId !== usuarioId) {
+            const usuarioPainel = await this.prisma.usuarioPainel.findFirst({
+                where: { painelId: id, usuarioId: usuarioId },
+            });
+            if (!usuarioPainel) {
+                throw new UnauthorizedException(
+                    'Você não tem permissão para modificar este painel',
+                );
+            }
+        }
+
         return this.prisma.painel.update({
             where: { id },
             data,
         });
     }
 
-    async removerPainel(id: number) {
+    async removerPainel(id: number, usuarioId: number) {
+        const painel = await this.prisma.painel.findUnique({ where: { id } });
+
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado');
+        }
+
+        // Verifica se o usuário tem permissão para excluir o painel
+        if (painel.usuarioId !== usuarioId) {
+            const usuarioPainel = await this.prisma.usuarioPainel.findFirst({
+                where: { painelId: id, usuarioId: usuarioId },
+            });
+            if (!usuarioPainel) {
+                throw new UnauthorizedException(
+                    'Você não tem permissão para excluir este painel',
+                );
+            }
+        }
+
         return this.prisma.painel.delete({ where: { id } });
+    }
+
+    async buscarPorId(painelId: number) {
+        return this.prisma.painel.findUnique({
+            where: { id: painelId },
+        });
     }
 }

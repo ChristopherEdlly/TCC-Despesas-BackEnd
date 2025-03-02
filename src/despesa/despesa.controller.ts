@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { DespesaService } from './despesa.service';
 import { PainelService } from '../painel/painel.service'; // Importando o PainelService
+import { UsuarioPainelService } from 'src/usuario-painel/usuario-painel.service'; // Importando o UsuarioPainelService
 import { CreateDespesaDto } from './dto/create-despesa.dto';
 import { UpdateDespesaDto } from './dto/update-despesa.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -23,54 +24,118 @@ export class DespesaController {
     constructor(
         private readonly despesaService: DespesaService,
         private readonly painelService: PainelService, // Injeta o PainelService
+        private readonly usuarioPainelService: UsuarioPainelService, // Injeta o UsuarioPainelService
     ) {}
 
     @Post()
     async create(@Body() createDespesaDto: CreateDespesaDto, @Req() req) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
 
         // Verifica se o painel pertence ao usuário
         const painel = await this.painelService.buscarPorId(
             createDespesaDto.painelId,
         );
-        if (!painel || painel.usuarioId !== usuarioId) {
-            throw new ForbiddenException(
-                'Usuário não tem permissão para adicionar despesa nesse painel.',
+
+        if (!painel || usuarioId !== painel.usuarioId) {
+            console.log(
+                'Usuário não é o criador, verificando se é convidado...',
             );
+
+            const usuarioNoPainel =
+                await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                    createDespesaDto.painelId,
+                    usuarioId,
+                );
+
+            if (!usuarioNoPainel) {
+                console.log(
+                    'Usuário não tem permissão para adicionar despesa.',
+                );
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para adicionar despesa neste painel.',
+                );
+            }
+
+            console.log('Usuário é um convidado do painel, pode prosseguir.');
+        } else {
+            console.log('Usuário é o criador do painel, pode prosseguir.');
         }
 
         return this.despesaService.create(createDespesaDto);
     }
 
-    @Get('PorDespesa/:id')
+    @Get('despesa/:id')
     async buscarPorId(@Param('id') id: string, @Req() req) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
+
+        // Buscando a despesa por ID
         const despesa = await this.despesaService.buscarPorId(+id);
         if (!despesa) {
-            throw new NotFoundException(`Despesa com id ${id} não encontrada.`);
+            throw new NotFoundException('Despesa não encontrada.');
         }
 
-        // Verifica se o painel da despesa pertence ao usuário
+        // Verificando se o painel da despesa pertence ao usuário
         const painel = await this.painelService.buscarPorId(despesa.painelId);
-        if (!painel || painel.usuarioId !== usuarioId) {
-            throw new ForbiddenException(
-                'Usuário não tem permissão para acessar esta despesa.',
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado.');
+        }
+
+        if (usuarioId !== painel.usuarioId) {
+            console.log(
+                'Usuário não é o criador, verificando se é convidado...',
             );
+
+            const usuarioNoPainel =
+                await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                    despesa.painelId, // Usando despesa.painelId corretamente
+                    usuarioId,
+                );
+
+            if (!usuarioNoPainel) {
+                console.log('Usuário não tem permissão para buscar despesa.');
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para buscar despesa neste painel.',
+                );
+            }
+
+            console.log('Usuário é um convidado do painel, pode prosseguir.');
+        } else {
+            console.log('Usuário é o criador do painel, pode prosseguir.');
         }
 
         return despesa;
     }
 
-    @Get('PorPainel/:painelId')
+    @Get('painel/:painelId')
     async buscarPorPainelId(@Param('painelId') painelId: string, @Req() req) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
 
-        // Verifica se o painel pertence ao usuário
         const painel = await this.painelService.buscarPorId(+painelId);
-        if (!painel || painel.usuarioId !== usuarioId) {
-            throw new ForbiddenException(
-                'Usuário não tem permissão para acessar esse painel.',
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado.');
+        }
+
+        if (usuarioId !== painel.usuarioId) {
+            console.log(
+                'Usuário não é o criador, verificando se é convidado...',
             );
+
+            const usuarioNoPainel =
+                await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                    +painelId,
+                    usuarioId,
+                );
+
+            if (!usuarioNoPainel) {
+                console.log('Usuário não tem permissão para buscar despesa.');
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para acessar as despesas deste painel.',
+                );
+            }
+
+            console.log('Usuário é um convidado do painel, pode prosseguir.');
+        } else {
+            console.log('Usuário é o criador do painel, pode prosseguir.');
         }
 
         // Retorna todas as despesas do painel
@@ -83,14 +148,34 @@ export class DespesaController {
         @Param('categoriaDespesaId') categoriaDespesaId: string,
         @Req() req,
     ) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
 
-        // Verifica se o painel pertence ao usuário
         const painel = await this.painelService.buscarPorId(+painelId);
-        if (!painel || painel.usuarioId !== usuarioId) {
-            throw new ForbiddenException(
-                'Usuário não tem permissão para acessar esse painel.',
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado.');
+        }
+
+        if (usuarioId !== painel.usuarioId) {
+            console.log(
+                'Usuário não é o criador, verificando se é convidado...',
             );
+
+            const usuarioNoPainel =
+                await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                    +painelId,
+                    usuarioId,
+                );
+
+            if (!usuarioNoPainel) {
+                console.log('Usuário não tem permissão para buscar despesa.');
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para buscar despesa neste painel.',
+                );
+            }
+
+            console.log('Usuário é um convidado do painel, pode prosseguir.');
+        } else {
+            console.log('Usuário é o criador do painel, pode prosseguir.');
         }
 
         return this.despesaService.buscarPorPainelIdECategoriaDespesaId(
@@ -105,7 +190,7 @@ export class DespesaController {
         @Body() updateDespesaDto: UpdateDespesaDto,
         @Req() req,
     ) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
         const despesa = await this.despesaService.buscarPorId(+id);
         if (!despesa) {
             throw new NotFoundException(`Despesa com id ${id} não encontrada.`);
@@ -124,7 +209,7 @@ export class DespesaController {
 
     @Delete(':id')
     async remove(@Param('id') id: string, @Req() req) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
         const despesa = await this.despesaService.buscarPorId(+id);
         if (!despesa) {
             throw new NotFoundException(`Despesa com id ${id} não encontrada.`);
@@ -147,9 +232,8 @@ export class DespesaController {
         @Param('dataLimite') dataLimite: string,
         @Req() req,
     ) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
 
-        // Verifica se o painel existe e se pertence ao usuário
         const painel = await this.painelService.buscarPorId(+painelId);
         if (!painel || painel.usuarioId !== usuarioId) {
             throw new ForbiddenException(
@@ -157,16 +241,13 @@ export class DespesaController {
             );
         }
 
-        // Converte a dataLimite para objeto Date
         const dataLimiteObj = new Date(dataLimite);
 
-        // Chama o serviço para buscar a soma das despesas até a data fornecida
         const resultado = await this.despesaService.buscarSomaDasDespesas(
             +painelId,
             dataLimiteObj,
         );
 
-        // Retorna o valor somado das despesas até a data limite
         return resultado._sum.valor;
     }
 }

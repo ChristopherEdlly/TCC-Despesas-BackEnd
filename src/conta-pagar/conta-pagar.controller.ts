@@ -34,7 +34,7 @@ export class ContaPagarController {
         @Body() createContaAPagarDto: CreateContaAPagarDto,
         @Req() req,
     ) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
 
         const despesa = await this.despesaService.buscarPorId(
             createContaAPagarDto.despesaId,
@@ -65,7 +65,7 @@ export class ContaPagarController {
 
     @Get(':id')
     async findOne(@Param('id') id: string, @Req() req) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
         const contaAPagar = await this.contaPagarService.findOne(+id);
         if (!contaAPagar) {
             throw new NotFoundException(
@@ -96,7 +96,7 @@ export class ContaPagarController {
         @Body() updateContaPagarDto: UpdateContaPagarDto,
         @Req() req,
     ) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
         const contaAPagar = await this.contaPagarService.findOne(+id);
         if (!contaAPagar) {
             throw new NotFoundException(
@@ -122,7 +122,7 @@ export class ContaPagarController {
 
     @Delete(':id')
     async remove(@Param('id') id: string, @Req() req) {
-        const usuarioId = req.user.sub;
+        const usuarioId = req.user.id;
         const contaAPagar = await this.contaPagarService.findOne(+id);
         if (!contaAPagar) {
             throw new NotFoundException(

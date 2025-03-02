@@ -7,11 +7,14 @@ import {
     Param,
     Delete,
     BadRequestException,
+    UseGuards,
 } from '@nestjs/common';
 import { UsuarioPainelService } from './usuario-painel.service';
 import { CreateUsuarioPainelDto } from './dto/create-usuario-painel.dto';
 import { UpdateUsuarioPainelDto } from './dto/update-usuario-painel.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('usuariopainel')
 export class UsuarioPainelController {
     constructor(private readonly usuarioPainelService: UsuarioPainelService) {}

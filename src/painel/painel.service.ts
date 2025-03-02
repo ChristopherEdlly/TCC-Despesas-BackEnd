@@ -6,21 +6,18 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePainelDto } from './dto/create-painel.dto';
 
 @Injectable()
 export class PainelService {
     constructor(private prisma: PrismaService) {}
 
-    async criarPainel(data: {
-        nome: string;
-        descricao?: string;
-        usuarioId: number;
-    }) {
+    async criarPainel(data: CreatePainelDto) {
         return this.prisma.painel.create({
             data: {
                 nome: data.nome,
                 descricao: data.descricao,
-                usuario: { connect: { id: data.usuarioId } }, // Associa o painel ao usuário criador
+                usuario: { connect: { id: data.usuarioId } },
             },
         });
     }

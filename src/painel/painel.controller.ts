@@ -10,6 +10,7 @@ import {
     UseGuards,
     Req as Request,
     Req,
+    ForbiddenException,
 } from '@nestjs/common';
 import { PainelService } from './painel.service';
 import { CreatePainelDto } from './dto/create-painel.dto';
@@ -19,17 +20,17 @@ import { AuthGuard } from 'src/auth/auth.guard';
 @UseGuards(AuthGuard)
 @Controller('painel')
 export class PainelController {
+    usuarioPainelService: any;
     constructor(private readonly painelService: PainelService) {}
 
     @Post()
     async criarPainel(@Body() data: CreatePainelDto, @Req() req) {
-        const usuarioId = req.user.sub; // Pega o id do usuário do token
-        return this.painelService.criarPainel({ ...data, usuarioId });
+        return this.painelService.criarPainel({ ...data });
     }
 
     @Get()
     async listarPaineis(@Req() req, @Query('nome') nome?: string) {
-        const usuarioId = req.user.sub; // Pega o id do usuário do token
+        const usuarioId = req.user.id;
         return this.painelService.listarPaineisDoUsuario(usuarioId, nome);
     }
 
@@ -39,7 +40,8 @@ export class PainelController {
         @Body() updatePainelDto: UpdatePainelDto,
         @Req() req,
     ) {
-        const usuarioId = req.user.sub; // Pega o id do usuário do token
+        const usuarioId = req.user.id;
+
         return this.painelService.atualizarPainel(
             +id,
             updatePainelDto,
@@ -49,7 +51,7 @@ export class PainelController {
 
     @Delete(':id')
     async remove(@Param('id') id: string, @Req() req) {
-        const usuarioId = req.user.sub; // Pega o id do usuário do token
+        const usuarioId = req.user.id;
         return this.painelService.removerPainel(+id, usuarioId);
     }
 }

@@ -52,23 +52,28 @@ export class ReceitaService {
         });
     }
 
-    async calcularSaldoAteData(data: string): Promise<number> {
+    async calcularSaldoAteData(
+        data: string,
+        painelId: number,
+    ): Promise<number> {
         const dataFinal = new Date(data);
 
-        // 1️⃣ Buscar receitas únicas (Unico) dentro do período
+        // 1️⃣ Buscar receitas únicas do painel dentro do período
         const receitasUnicas = await this.prisma.receita.findMany({
             where: {
+                painelId,
                 tipo: TipoReceita.Unico,
-                dataRecebimento: { lte: dataFinal }, // Receitas únicas até a data fornecida
+                dataRecebimento: { lte: dataFinal },
             },
             select: { valor: true },
         });
 
-        // 2️⃣ Buscar receitas fixas (Fixo) que iniciaram antes da data final
+        // 2️⃣ Buscar receitas fixas do painel que iniciaram antes da data final
         const receitasFixas = await this.prisma.receita.findMany({
             where: {
+                painelId,
                 tipo: TipoReceita.Fixo,
-                dataRecebimento: { lte: dataFinal }, // Pegamos apenas as fixas que começaram antes ou na data limite
+                dataRecebimento: { lte: dataFinal },
             },
             select: {
                 valor: true,

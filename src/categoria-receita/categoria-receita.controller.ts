@@ -6,11 +6,14 @@ import {
     Patch,
     Param,
     Delete,
+    UseGuards,
 } from '@nestjs/common';
 import { CategoriaReceitaService } from './categoria-receita.service';
 import { CreateCategoriaReceitaDto } from './dto/create-categoria-receita.dto';
 import { UpdateCategoriaReceitaDto } from './dto/update-categoria-receita.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('categoria-receita')
 export class CategoriaReceitaController {
     constructor(

@@ -17,19 +17,20 @@ export class AuthService {
     @Inject()
     private readonly jwtService: JwtService;
 
-    async signin(
-        params: Prisma.UsuarioCreateInput,
-    ): Promise<{ access_token: string }> {
-        const user = await this.prisma.usuario.findUnique({
-            where: { email: params.email },
+    async signin({ email, senha }: { email: string; senha: string }) {
+        const usuario = await this.prisma.usuario.findUnique({
+            where: { email },
         });
-        if (!user) throw new NotFoundException('User not found');
-        const passwordMatch = await bcrypt.compare(params.senha, user.senha);
-        if (!passwordMatch)
-            throw new UnauthorizedException('Invalid credentials');
 
-        const payload = { sub: user.id };
+        if (!usuario || !(await bcrypt.compare(senha, usuario.senha))) {
+            throw new UnauthorizedException('Credenciais inválidas');
+        }
 
-        return { access_token: await this.jwtService.signAsync(payload) };
+        const token = this.jwtService.sign({
+            id: usuario.id,
+            email: usuario.email,
+        });
+
+        return { token };
     }
 }

@@ -29,4 +29,8 @@ export class UsuarioService {
     async removerUsuario(id: number) {
         return this.prisma.usuario.delete({ where: { id } });
     }
+
+    async buscarPorId(id: number) {
+        return this.prisma.usuario.findUnique({ where: { id } });
+    }
 }

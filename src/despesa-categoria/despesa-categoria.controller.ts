@@ -6,11 +6,14 @@ import {
     Patch,
     Param,
     Delete,
+    UseGuards,
 } from '@nestjs/common';
 import { DespesaCategoriaService } from './despesa-categoria.service';
 import { CreateDespesaCategoriaDto } from './dto/create-despesa-categoria.dto';
 import { UpdateDespesaCategoriaDto } from './dto/update-despesa-categoria.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('despesa-categoria')
 export class DespesaCategoriaController {
     constructor(

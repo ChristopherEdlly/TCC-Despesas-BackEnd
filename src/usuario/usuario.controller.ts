@@ -56,10 +56,6 @@ export class UsuarioController {
 
     @Get()
     async buscarPerfil(@Req() req) {
-        console.log(
-            'Token recebido no servidor:',
-            req.headers['authorization'],
-        );
         const usuarioId = req.user.id;
         const usuario = await this.usuarioService.buscarPorId(usuarioId);
 

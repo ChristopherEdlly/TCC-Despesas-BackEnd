@@ -25,6 +25,7 @@ export class PainelController {
 
     @Post()
     async criarPainel(@Body() data: CreatePainelDto, @Req() req) {
+        data.usuarioId = req.user.id;
         return this.painelService.criarPainel({ ...data });
     }
 

@@ -8,6 +8,7 @@ import {
     Delete,
     BadRequestException,
     UseGuards,
+    Req,
 } from '@nestjs/common';
 import { UsuarioPainelService } from './usuario-painel.service';
 import { CreateUsuarioPainelDto } from './dto/create-usuario-painel.dto';
@@ -29,8 +30,9 @@ export class UsuarioPainelController {
         return this.usuarioPainelService.listarUsuariosDoPainel(+id);
     }
 
-    @Get('/ListarPaineisDoUsuario/:id')
-    listarPaineisDoUsuario(@Param('id') id: string) {
+    @Get('/ListarPaineisDoUsuario')
+    listarPaineisDoUsuario(@Req() req) {
+        const id = req.user.id;
         return this.usuarioPainelService.listarPaineisDoUsuario(+id);
     }
 

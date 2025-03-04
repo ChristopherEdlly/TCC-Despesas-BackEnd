@@ -13,6 +13,11 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum TipoReceita {
+    Fixo
+    Unico
+}
+
 model Usuario {
     id                Int                @id @default(autoincrement())
     nome              String
@@ -20,6 +25,7 @@ model Usuario {
     senha             String
     categoriaReceitas CategoriaReceita[]
     categoriaDespesas CategoriaDespesa[]
+    grupoDespesas     GrupoDespesa[]
     usuarioPainel     UsuarioPainel[]
     Painel            Painel[]
 }
@@ -58,6 +64,7 @@ model Receita {
     id                 Int              @id @default(autoincrement())
     valor              Decimal          @db.Decimal(10, 2)
     descricao          String?
+    tipo               TipoReceita
     dataRecebimento    DateTime
     painelId           Int
     categoriaReceitaId Int
@@ -68,6 +75,8 @@ model Receita {
 model GrupoDespesa {
     id                Int                @id @default(autoincrement())
     nome              String
+    usuarioId         Int
+    usuario           Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
     categoriaDespesas CategoriaDespesa[]
 }
 
@@ -85,6 +94,7 @@ model Despesa {
     id                 Int              @id @default(autoincrement())
     valor              Decimal          @db.Decimal(10, 2)
     descricao          String?
+    dataCompra         DateTime         @db.Date
     painelId           Int
     categoriaDespesaId Int
     painel             Painel           @relation(fields: [painelId], references: [id], onDelete: Cascade)

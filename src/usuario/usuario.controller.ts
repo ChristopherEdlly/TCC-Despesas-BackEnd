@@ -6,6 +6,7 @@ import {
     Get,
     Param,
     Patch,
+    Post,
     Req,
     UseGuards,
 } from '@nestjs/common';
@@ -51,5 +52,24 @@ export class UsuarioController {
         }
 
         return this.usuarioService.removerUsuario(+id);
+    }
+
+    @Get()
+    async buscarPerfil(@Req() req) {
+        console.log(
+            'Token recebido no servidor:',
+            req.headers['authorization'],
+        );
+        const usuarioId = req.user.id;
+        const usuario = await this.usuarioService.buscarPorId(usuarioId);
+
+        if (!usuario) {
+            throw new ForbiddenException('Usuário não encontrado.');
+        }
+
+        const nomeCompleto = usuario.nome;
+        const primeiroNome = nomeCompleto.split(' ')[0];
+
+        return { primeiroNome };
     }
 }

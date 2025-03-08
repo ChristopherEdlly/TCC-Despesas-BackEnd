@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     UseGuards,
+    Req,
 } from '@nestjs/common';
 import { CategoriaReceitaService } from './categoria-receita.service';
 import { CreateCategoriaReceitaDto } from './dto/create-categoria-receita.dto';
@@ -25,8 +26,9 @@ export class CategoriaReceitaController {
         return this.categoriaReceitaService.criarCategoriaReceita(data);
     }
 
-    @Get(':usuarioId')
-    listarCategoriasReceitaPorUsuario(@Param('usuarioId') usuarioId: string) {
+    @Get()
+    listarCategoriasReceitaPorUsuario(@Req() req) {
+        const usuarioId = req.user.id;
         return this.categoriaReceitaService.listarCategoriasReceitaPorUsuario(
             +usuarioId,
         );

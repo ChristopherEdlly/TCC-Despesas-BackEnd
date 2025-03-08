@@ -1,23 +1,23 @@
 import {
-    Controller,
-    Get,
-    Post,
     Body,
-    Patch,
-    Param,
+    Controller,
     Delete,
-    UseGuards,
-    Req,
-    NotFoundException,
     ForbiddenException,
+    Get,
+    NotFoundException,
+    Param,
+    Patch,
+    Post,
+    Req,
+    UseGuards,
 } from '@nestjs/common';
-import { ContaPagarService } from './conta-pagar.service';
-import { DespesaService } from '../despesa/despesa.service'; // Importando o DespesaService
-import { CreateContaAPagarDto } from './dto/create-conta-pagar.dto';
-import { UpdateContaPagarDto } from './dto/update-conta-pagar.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { DespesaService } from '../despesa/despesa.service'; // Importando o DespesaService
 import { PainelService } from '../painel/painel.service'; // Importando o PainelService
 import { UsuarioPainelService } from '../usuario-painel/usuario-painel.service'; // Serviço para verificar os convites
+import { ContaPagarService } from './conta-pagar.service';
+import { CreateContaAPagarDto } from './dto/create-conta-pagar.dto';
+import { UpdateContaPagarDto } from './dto/update-conta-pagar.dto';
 
 @UseGuards(AuthGuard)
 @Controller('conta-pagar')
@@ -48,18 +48,19 @@ export class ContaPagarController {
             throw new NotFoundException('Painel não encontrado.');
         }
 
-        if (painel.usuarioId !== usuarioId) {
-            const usuarioNoPainel =
-                await this.usuarioPainelService.verificarSeUsuarioNoPainel(
-                    painel.id,
-                    usuarioId,
-                );
-            if (!usuarioNoPainel) {
-                throw new ForbiddenException(
-                    'Usuário não tem permissão para acessar este painel.',
-                );
-            }
+        // Verifica se o usuário é dono do painel ou se é um convidado
+        const temPermissao = painel.usuarioId === usuarioId ||
+            await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                painel.id,
+                usuarioId,
+            );
+
+        if (!temPermissao) {
+            throw new ForbiddenException(
+                'Usuário não tem permissão para criar contas a pagar neste painel.',
+            );
         }
+
         return this.contaPagarService.create(createContaAPagarDto);
     }
 

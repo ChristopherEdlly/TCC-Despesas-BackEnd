@@ -1,15 +1,12 @@
-import { Decimal } from '@prisma/client/runtime/library';
 import {
-    IsInt,
     IsDateString,
+    IsInt,
     IsNotEmpty,
-    Min,
     IsString,
+    Min,
 } from 'class-validator';
 
 export class CreateContaAPagarDto {
-    valor: Decimal;
-
     @IsDateString()
     @IsNotEmpty()
     dataVencimento: string;

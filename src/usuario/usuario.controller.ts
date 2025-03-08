@@ -21,7 +21,6 @@ export class UsuarioController {
 
     @Get(':nome')
     async PesquisarUsuarios(@Param('nome') nome: string, @Req() req) {
-
         return this.usuarioService.buscarUsuarioPorNome(nome);
     }
 
@@ -67,5 +66,10 @@ export class UsuarioController {
         const primeiroNome = nomeCompleto.split(' ')[0];
 
         return { primeiroNome };
+    }
+
+    @Get('email/:email')
+    async buscarPorEmail(@Param('email') email: string) {
+        return this.usuarioService.buscarUsuarioPorEmail(email);
     }
 }

@@ -234,4 +234,37 @@ export class ReceitaController {
 
         return this.receitaService.calcularSaldoAteData(data, +painelId);
     }
+
+
+    @Get(':id')
+    async buscarPorId(@Param('id') id: string, @Req() req) {
+        const usuarioId = req.user.id;
+
+        // Busca a receita
+        const receita = await this.receitaService.buscarPorId(+id);
+        if (!receita) {
+            throw new NotFoundException('Receita não encontrada.');
+        }
+
+        // Busca o painel vinculado à receita
+        const painel = await this.painelService.buscarPorId(receita.painelId);
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado.');
+        }
+
+        // Verifica permissões
+        if (painel.usuarioId !== usuarioId) {
+            const usuarioNoPainel = await this.usuarioPainelService.verificarSeUsuarioNoPainel(
+                painel.id,
+                usuarioId,
+            );
+            if (!usuarioNoPainel) {
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para visualizar esta receita.',
+                );
+            }
+        }
+
+        return receita;
+    }
 }

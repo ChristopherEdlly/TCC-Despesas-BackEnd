@@ -43,4 +43,12 @@ export class DespesaCategoriaService {
             },
         });
     }
+
+    async buscarPorId(id: number) {
+        return this.prisma.categoriaDespesa.findUnique({
+            where: {
+                id,
+            },
+        });
+    }
 }

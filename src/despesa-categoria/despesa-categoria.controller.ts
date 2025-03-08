@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     UseGuards,
+    Req,
 } from '@nestjs/common';
 import { DespesaCategoriaService } from './despesa-categoria.service';
 import { CreateDespesaCategoriaDto } from './dto/create-despesa-categoria.dto';
@@ -25,8 +26,9 @@ export class DespesaCategoriaController {
         return this.despesaCategoriaService.create(createDespesaCategoriaDto);
     }
 
-    @Get('usuario/:usuarioId')
-    buscarPorUsuarioId(@Param('usuarioId') usuarioId: string) {
+    @Get('usuario/')
+    buscarPorUsuarioId(@Req() req) {
+        const usuarioId = req.user.id;
         return this.despesaCategoriaService.uscarPorUsuarioId(+usuarioId);
     }
 
@@ -48,5 +50,10 @@ export class DespesaCategoriaController {
     @Delete(':id')
     deletar(@Param('id') id: string) {
         return this.despesaCategoriaService.deletar(+id);
+    }
+
+    @Get(':id')
+    buscarPorId(@Param('id') id: string) {
+        return this.despesaCategoriaService.buscarPorId(+id);
     }
 }

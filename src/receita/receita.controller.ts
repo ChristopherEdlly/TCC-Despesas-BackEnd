@@ -267,4 +267,33 @@ export class ReceitaController {
 
         return receita;
     }
+
+    @Get('painel/:painelId/resumo/:periodo')
+    async obterResumoReceitas(
+        @Param('painelId') painelId: string,
+        @Param('periodo') periodo: 'mes' | 'ano',
+        @Req() req
+    ) {
+        const usuarioId = req.user.id;
+
+        // Verifica se o painel existe
+        const painel = await this.painelService.buscarPorId(+painelId);
+        if (!painel) {
+            throw new NotFoundException('Painel não encontrado.');
+        }
+
+        // Verifica se o usuário é dono do painel ou convidado
+        if (painel.usuarioId !== usuarioId) {
+            const usuarioNoPainel = await this.usuarioPainelService
+                .verificarSeUsuarioNoPainel(painel.id, usuarioId);
+
+            if (!usuarioNoPainel) {
+                throw new ForbiddenException(
+                    'Usuário não tem permissão para acessar as receitas deste painel.',
+                );
+            }
+        }
+
+        return this.receitaService.obterResumoReceitas(+painelId, periodo);
+    }
 }

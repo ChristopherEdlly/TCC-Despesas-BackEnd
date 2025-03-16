@@ -5,9 +5,11 @@ export class CreateUsuarioPainelDto {
     @IsNotEmpty()
     permissao: string;
 
-    @IsInt()
+    @IsString()
     @IsNotEmpty()
-    usuarioId: number;
+    email: string;
+
+    
 
     @IsInt()
     @IsNotEmpty()

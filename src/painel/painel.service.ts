@@ -27,10 +27,10 @@ export class PainelService {
             return await this.prisma.painel.findMany({
                 where: {
                     OR: [
-                        { usuarioId: usuarioId }, // O painel pertence ao usuário
+                        { usuarioId: usuarioId },
                         {
                             usuarioPainel: {
-                                some: { usuarioId: usuarioId }, // O usuário é convidado no painel
+                                some: { usuarioId: usuarioId },
                             },
                         },
                     ],
@@ -83,16 +83,11 @@ export class PainelService {
             throw new NotFoundException('Painel não encontrado');
         }
 
-        // Verifica se o usuário tem permissão para excluir o painel
+        // Verifica se o usuário é o criador do painel
         if (painel.usuarioId !== usuarioId) {
-            const usuarioPainel = await this.prisma.usuarioPainel.findFirst({
-                where: { painelId: id, usuarioId: usuarioId },
-            });
-            if (!usuarioPainel) {
-                throw new UnauthorizedException(
-                    'Você não tem permissão para excluir este painel',
-                );
-            }
+            throw new UnauthorizedException(
+                'Apenas o criador do painel pode excluí-lo'
+            );
         }
 
         return this.prisma.painel.delete({ where: { id } });

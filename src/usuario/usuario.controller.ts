@@ -27,9 +27,9 @@ export class UsuarioController {
     private readonly cloudinaryService: CloudinaryService, // Injetado corretamente
   ) {}
 
-  @Get(':nome')
-  async PesquisarUsuarios(@Param('nome') nome: string, @Req() req) {
-    return this.usuarioService.buscarUsuarioPorNome(nome);
+  @Get(':id')
+  async PesquisarUsuario(@Param('id') id: string, @Req() req) {
+    return this.usuarioService.buscarPorId(+id);
   }
 
   @Patch(':id')

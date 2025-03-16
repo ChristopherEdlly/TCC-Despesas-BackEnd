@@ -113,15 +113,6 @@ export class ReceitaService {
         ? new Date(hoje.getFullYear(), hoje.getMonth(), 1)
         : new Date(hoje.getFullYear(), 0, 1);
 
-    // Define o tipo das receitas com categoriaReceita incluído
-    type ReceitaComCategoria = Receita & {
-      categoriaReceita: {
-        id: number;
-        nome: string;
-        usuarioId: number;
-      };
-    };
-
     // Busca todas as receitas
     const receitas = await this.prisma.receita.findMany({
       where: {
@@ -132,67 +123,107 @@ export class ReceitaService {
       },
     });
 
+    // ESTRUTURA PARA ARMAZENAR TODOS OS DIAS DO PERÍODO ATUAL
+    const todasDatas = new Map<string, boolean>();
+
+    // Se for mês, adiciona todos os dias do mês atual
+    if (periodo === 'mes') {
+      const ultimoDiaMes = new Date(
+        hoje.getFullYear(),
+        hoje.getMonth() + 1,
+        0,
+      ).getDate();
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const data = new Date(hoje.getFullYear(), hoje.getMonth(), dia);
+        if (data <= hoje) {
+          // Não incluir datas futuras
+          todasDatas.set(data.toISOString().split('T')[0], true);
+        }
+      }
+    }
+    // Se for ano, adiciona todos os meses do ano atual
+    else {
+      for (let mes = 0; mes < hoje.getMonth() + 1; mes++) {
+        const data = new Date(hoje.getFullYear(), mes, 1);
+        todasDatas.set(data.toISOString().slice(0, 7), true);
+      }
+    }
+
     // Processa as receitas fixas e únicas
-    const receitasProcessadas = receitas.reduce<ReceitaComCategoria[]>(
-      (acc, receita) => {
-        const dataInicial = new Date(receita.dataRecebimento);
+    const receitasProcessadas = receitas.reduce<any[]>((acc, receita) => {
+      const dataInicial = new Date(receita.dataRecebimento);
 
-        if (receita.tipo === TipoReceita.Unico) {
-          if (dataInicial >= inicioPeriodo && dataInicial <= hoje) {
-            acc.push(receita as ReceitaComCategoria);
+      if (receita.tipo === TipoReceita.Unico) {
+        if (dataInicial >= inicioPeriodo && dataInicial <= hoje) {
+          acc.push(receita);
+        }
+      } else if (receita.tipo === TipoReceita.Fixo) {
+        // CORREÇÃO: Adiciona uma receita fixa apenas nas datas reais de recebimento
+        let dataAtual = new Date(dataInicial);
+
+        while (dataAtual <= hoje) {
+          if (dataAtual >= inicioPeriodo) {
+            acc.push({
+              ...receita,
+              dataRecebimento: new Date(dataAtual),
+            });
           }
-        } else if (receita.tipo === TipoReceita.Fixo) {
-          let dataAtual = new Date(dataInicial);
+          // Avança para o próximo mês mantendo o mesmo dia
+          const diaAtual = dataAtual.getDate();
+          dataAtual.setMonth(dataAtual.getMonth() + 1);
 
-          while (dataAtual <= hoje) {
-            if (dataAtual >= inicioPeriodo) {
-              acc.push({
-                ...receita,
-                dataRecebimento: new Date(dataAtual),
-              } as ReceitaComCategoria);
-            }
-            dataAtual.setMonth(dataAtual.getMonth() + 1);
+          // Corrige problemas com meses de diferentes números de dias
+          if (dataAtual.getDate() !== diaAtual) {
+            // Se o dia mudou (ex: 31/01 para 28/02), voltar para o último dia do mês
+            dataAtual.setDate(0);
           }
         }
+      }
 
-        return acc;
-      },
-      [],
-    );
-
-    // Agrupa por período
-    const receitasPorPeriodo = receitasProcessadas.reduce<Record<string, number>>(
-      (acc, receita) => {
-        const data =
-          periodo === 'mes'
-            ? receita.dataRecebimento.toISOString().split('T')[0]
-            : receita.dataRecebimento.toISOString().slice(0, 7);
-
-        if (!acc[data]) {
-          acc[data] = 0;
-        }
-        acc[data] = Number(acc[data]) + Number(receita.valor);
-        return acc;
-      },
-      {},
-    );
+      return acc;
+    }, []);
 
     // Agrupa por categoria
-    const receitasPorCategoria = receitasProcessadas.reduce<Record<string, number>>(
-      (acc, receita) => {
-        const categoria = receita.categoriaReceita.nome;
-        if (!acc[categoria]) {
-          acc[categoria] = 0;
-        }
-        acc[categoria] = Number(acc[categoria]) + Number(receita.valor);
-        return acc;
-      },
-      {},
-    );
+    const receitasPorCategoria = receitasProcessadas.reduce<
+      Record<string, number>
+    >((acc, receita) => {
+      const categoria = receita.categoriaReceita.nome;
 
-    const total = receitasProcessadas.reduce(
-      (sum, receita) => Number(sum) + Number(receita.valor),
-      0,
+      if (!acc[categoria]) {
+        acc[categoria] = 0;
+      }
+      acc[categoria] = Number(acc[categoria]) + Number(receita.valor);
+      return acc;
+    }, {});
+
+    // Agrupa por período
+    const receitasPorPeriodo = receitasProcessadas.reduce<
+      Record<string, number>
+    >((acc, receita) => {
+      const data =
+        periodo === 'mes'
+          ? receita.dataRecebimento.toISOString().split('T')[0]
+          : receita.dataRecebimento.toISOString().slice(0, 7);
+
+      if (!acc[data]) {
+        acc[data] = 0;
+      }
+      acc[data] = Number(acc[data]) + Number(receita.valor);
+      return acc;
+    }, {});
+
+    // ADICIONA TODAS AS DATAS DO PERÍODO COMO CHAVES, MESMO SEM MOVIMENTAÇÃO
+    const receitasCompletas: Record<string, number> = {};
+    for (const data of todasDatas.keys()) {
+      receitasCompletas[data] = receitasPorPeriodo[data] || 0;
+    }
+
+    // Restante do código permanece igual...
+
+    // Calcula o total de todas as receitas do período
+    const total = Object.values(receitasPorCategoria).reduce(
+      (sum, valor) => sum + Number(valor),
+      0
     );
 
     return {
@@ -202,7 +233,7 @@ export class ReceitaService {
           valor: Number(valor),
         }),
       ),
-      resumoPorPeriodo: receitasPorPeriodo,
+      resumoPorPeriodo: receitasCompletas,
       total,
     };
   }

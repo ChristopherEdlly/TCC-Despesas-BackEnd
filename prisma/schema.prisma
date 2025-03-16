@@ -19,26 +19,27 @@ enum TipoReceita {
 }
 
 model Usuario {
-    id                Int                @id @default(autoincrement())
-    nome              String
-    email             String             @unique
-    senha             String
-    categoriaReceitas CategoriaReceita[]
-    categoriaDespesas CategoriaDespesa[]
-    grupoDespesas     GrupoDespesa[]
-    usuarioPainel     UsuarioPainel[]
-    Painel            Painel[]
+    id            Int             @id @default(autoincrement())
+    nome          String
+    email         String          @unique
+    senha         String
+    fotoPerfil    String?
+    usuarioPainel UsuarioPainel[]
+    Painel        Painel[]
 }
 
 model Painel {
-    id            Int             @id @default(autoincrement())
-    nome          String
-    descricao     String?
-    usuarioId     Int
-    usuario       Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-    usuarioPainel UsuarioPainel[]
-    receitas      Receita[]
-    despesas      Despesa[]
+    id                Int                @id @default(autoincrement())
+    nome              String
+    descricao         String?
+    usuarioId         Int
+    usuario           Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    usuarioPainel     UsuarioPainel[]
+    receitas          Receita[]
+    despesas          Despesa[]
+    categoriaReceitas CategoriaReceita[]
+    categoriaDespesas CategoriaDespesa[]
+    grupoDespesas     GrupoDespesa[]
 }
 
 model UsuarioPainel {
@@ -55,8 +56,8 @@ model UsuarioPainel {
 model CategoriaReceita {
     id        Int       @id @default(autoincrement())
     nome      String
-    usuarioId Int
-    usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    painelId  Int
+    painel    Painel    @relation(fields: [painelId], references: [id], onDelete: Cascade)
     receitas  Receita[]
 }
 
@@ -75,17 +76,17 @@ model Receita {
 model GrupoDespesa {
     id                Int                @id @default(autoincrement())
     nome              String
-    usuarioId         Int
-    usuario           Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    painelId          Int
+    painel            Painel             @relation(fields: [painelId], references: [id], onDelete: Cascade)
     categoriaDespesas CategoriaDespesa[]
 }
 
 model CategoriaDespesa {
     id             Int           @id @default(autoincrement())
     nome           String
-    usuarioId      Int
+    painelId       Int
     grupoDespesaId Int?
-    usuario        Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+    painel         Painel        @relation(fields: [painelId], references: [id], onDelete: Cascade)
     grupoDespesa   GrupoDespesa? @relation(fields: [grupoDespesaId], references: [id], onDelete: SetNull)
     despesas       Despesa[]
 }

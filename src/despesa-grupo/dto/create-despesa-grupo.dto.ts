@@ -7,5 +7,5 @@ export class CreateDespesaGrupoDto {
 
     @IsInt()
     @IsNotEmpty()
-    usuarioId: number;
+    painelId: number;
 }

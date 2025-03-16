@@ -8,5 +8,5 @@ export class CreateCategoriaReceitaDto {
 
     @IsNotEmpty()
     @IsInt()
-    usuarioId: number;
+    painelId: number;
 }

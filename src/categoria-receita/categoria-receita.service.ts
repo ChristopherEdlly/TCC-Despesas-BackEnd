@@ -1,30 +1,65 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoriaReceitaDto } from './dto/create-categoria-receita.dto';
 import { UpdateCategoriaReceitaDto } from './dto/update-categoria-receita.dto';
 
 @Injectable()
 export class CategoriaReceitaService {
-    constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-    async criarCategoriaReceita(data: CreateCategoriaReceitaDto) {
-        return this.prisma.categoriaReceita.create({ data });
+  async criar(data: CreateCategoriaReceitaDto) {
+    return this.prisma.categoriaReceita.create({
+      data: {
+        nome: data.nome,
+        painelId: data.painelId, // Alterado de usuarioId para painelId
+      },
+    });
+  }
+
+  async buscarPorPainelId(painelId: number) {
+    return this.prisma.categoriaReceita.findMany({
+      where: { painelId }, // Alterado de usuarioId para painelId
+    });
+  }
+
+  async atualizar(id: number, data: UpdateCategoriaReceitaDto) {
+    const categoria = await this.prisma.categoriaReceita.findUnique({
+      where: { id },
+    });
+
+    if (!categoria) {
+      throw new NotFoundException('Categoria de receita não encontrada.');
     }
 
-    async listarCategoriasReceitaPorUsuario(usuarioId: number) {
-        return this.prisma.categoriaReceita.findMany({
-            where: { usuarioId },
-        });
+    return this.prisma.categoriaReceita.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deletar(id: number) {
+    const categoria = await this.prisma.categoriaReceita.findUnique({
+      where: { id },
+    });
+
+    if (!categoria) {
+      throw new NotFoundException('Categoria de receita não encontrada.');
     }
 
-    async atualizarCategoriaReceita(
-        id: number,
-        data: UpdateCategoriaReceitaDto,
-    ) {
-        return this.prisma.categoriaReceita.update({ where: { id }, data });
+    return this.prisma.categoriaReceita.delete({
+      where: { id },
+    });
+  }
+
+  async buscarPorId(id: number) {
+    const categoria = await this.prisma.categoriaReceita.findUnique({
+      where: { id },
+    });
+
+    if (!categoria) {
+      throw new NotFoundException('Categoria de receita não encontrada.');
     }
 
-    async removerCategoriaReceita(id: number) {
-        return this.prisma.categoriaReceita.delete({ where: { id } });
-    }
+    return categoria;
+  }
 }

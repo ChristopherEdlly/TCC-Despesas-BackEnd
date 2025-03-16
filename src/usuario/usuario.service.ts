@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -19,7 +20,7 @@ export class UsuarioService {
         return this.prisma.usuario.findMany({ where: { nome } });
     }
 
-    async atualizarUsuario(id: number, data: Prisma.UsuarioUpdateInput) {
+    async atualizarUsuario(id: number, data: UpdateUsuarioDto) {
         return this.prisma.usuario.update({
             where: { id },
             data,

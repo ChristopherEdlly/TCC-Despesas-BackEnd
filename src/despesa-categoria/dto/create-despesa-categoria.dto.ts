@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, IsOptional } from 'class-validator';
 
 export class CreateDespesaCategoriaDto {
     @IsString()
@@ -7,8 +7,9 @@ export class CreateDespesaCategoriaDto {
 
     @IsInt()
     @IsNotEmpty()
-    usuarioId: number;
+    painelId: number; // Alterado de usuarioId para painelId
 
     @IsInt()
-    grupoDespesaId: number;
+    @IsOptional()
+    grupoDespesaId?: number;
 }

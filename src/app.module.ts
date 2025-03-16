@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CategoriaReceitaModule } from './categoria-receita/categoria-receita.module';
@@ -12,9 +13,11 @@ import { ReceitaModule } from './receita/receita.module';
 import { UsuarioPainelModule } from './usuario-painel/usuario-painel.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { AuthModule } from './auth/auth.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
     imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         UsuarioModule,
         UsuarioPainelModule,
         PainelModule,
@@ -26,6 +29,7 @@ import { AuthModule } from './auth/auth.module';
         DespesaGrupoModule,
         PrismaModule,
         AuthModule,
+        CloudinaryModule,
     ],
     controllers: [AppController],
     providers: [AppService],

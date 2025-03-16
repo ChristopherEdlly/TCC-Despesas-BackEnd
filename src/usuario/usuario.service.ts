@@ -38,6 +38,7 @@ export class UsuarioService {
                 id: true,
                 nome: true,
                 email: true,
+                fotoPerfil: true,
             },
         });
 

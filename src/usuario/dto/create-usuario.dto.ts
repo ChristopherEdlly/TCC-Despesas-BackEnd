@@ -11,5 +11,5 @@ export class CreateUsuarioDto {
   senha: string;
 
   @IsString()
-  fotoPerfil: string;
+  fotoPerfil?: string;
 }

@@ -14,24 +14,31 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
+import { CreateUsuarioDto } from './dto/create-usuario.dto.js';
 import { UsuarioService } from './usuario.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('usuario')
-@UseGuards(AuthGuard)
 export class UsuarioController {
   constructor(
     private readonly usuarioService: UsuarioService,
-    private readonly cloudinaryService: CloudinaryService, // Injetado corretamente
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  @Post()
+  async create(@Body() data: CreateUsuarioDto) {
+    return this.usuarioService.criarUsuario(data);
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id')
   async PesquisarUsuario(@Param('id') id: string, @Req() req) {
     return this.usuarioService.buscarPorId(+id);
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -49,6 +56,7 @@ export class UsuarioController {
     return this.usuarioService.atualizarUsuario(+id, data);
   }
 
+  @UseGuards(AuthGuard)
   @Post('upload-foto')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -95,10 +103,11 @@ export class UsuarioController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: number, @Req() req) {
+  async remove(@Param('id') id: string, @Req() req) {
     const usuarioId = req.user.id;
-    if (id !== usuarioId) {
+    if (+id !== +usuarioId) {
       throw new ForbiddenException(
         'Usuário não tem permissão para deletar esta esse usuario.',
       );
@@ -107,6 +116,7 @@ export class UsuarioController {
     return this.usuarioService.removerUsuario(+id);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async buscarPerfil(@Req() req) {
     const usuarioId = req.user.id;
@@ -128,6 +138,7 @@ export class UsuarioController {
     };
   }
 
+  @UseGuards(AuthGuard)
   @Get('email/:email')
   async buscarPorEmail(@Param('email') email: string) {
     return this.usuarioService.buscarUsuarioPorEmail(email);

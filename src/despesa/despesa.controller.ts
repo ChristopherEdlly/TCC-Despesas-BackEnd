@@ -31,6 +31,12 @@ export class DespesaController {
   async create(@Body() createDespesaDto: CreateDespesaDto, @Req() req) {
     const usuarioId = req.user.id;
 
+    await this.usuarioPainelService.verificarPermissao(
+        createDespesaDto.painelId,
+        usuarioId,
+        true
+      );
+
     // Verifica se o painel pertence ao usuário
     const painel = await this.painelService.buscarPorId(
       createDespesaDto.painelId,
@@ -181,10 +187,18 @@ export class DespesaController {
     @Req() req,
   ) {
     const usuarioId = req.user.id;
+
+
     const despesa = await this.despesaService.buscarPorId(+id);
     if (!despesa) {
       throw new NotFoundException(`Despesa com id ${id} não encontrada.`);
     }
+
+    await this.usuarioPainelService.verificarPermissao(
+        despesa.painelId,
+        usuarioId,
+        true
+      );
 
     // Verifica se o painel da despesa pertence ao usuário
     const painel = await this.painelService.buscarPorId(despesa.painelId);
@@ -204,6 +218,12 @@ export class DespesaController {
     if (!despesa) {
       throw new NotFoundException(`Despesa com id ${id} não encontrada.`);
     }
+
+    await this.usuarioPainelService.verificarPermissao(
+        despesa.painelId,
+        usuarioId,
+        true
+      );
 
     // Verifica se o painel da despesa pertence ao usuário
     const painel = await this.painelService.buscarPorId(despesa.painelId);

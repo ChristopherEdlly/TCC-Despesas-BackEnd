@@ -49,24 +49,44 @@ export class UsuarioPainelController {
   }
 
   @Get('/ListarUsuariosDoPainel/:id')
-  listarUsuariosDoPainel(@Param('id') id: string) {
+  async listarUsuariosDoPainel(@Param('id') id: string) {
     return this.usuarioPainelService.listarUsuariosDoPainel(+id);
   }
 
   @Get('/ListarPaineisDoUsuario')
-  listarPaineisDoUsuario(@Req() req) {
+  async listarPaineisDoUsuario(@Req() req) {
     const id = req.user.id;
     return this.usuarioPainelService.listarPaineisDoUsuario(+id);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateUsuarioPainelDto: UpdateUsuarioPainelDto,
+    @Req() req,
   ) {
+    const usuarioId = req.user.id;
+
     if (!updateUsuarioPainelDto.permissao) {
       throw new BadRequestException('Permissão não informada');
     }
+
+    const usuarioPainel = await this.usuarioPainelService.findOne(+id);
+    if (!usuarioPainel) {
+      throw new NotFoundException('Usuário não encontrado no painel');
+    }
+
+    const painel = await this.painelService.buscarPorId(usuarioPainel.painelId);
+    if (!painel) {
+      throw new NotFoundException('Painel não encontrado');
+    }
+
+    if (painel.usuarioId !== usuarioId) {
+      throw new ForbiddenException(
+        'Apenas o criador do painel pode alterar permissões',
+      );
+    }
+
     return this.usuarioPainelService.atualizarPermissao(
       +id,
       updateUsuarioPainelDto.permissao,
@@ -74,7 +94,26 @@ export class UsuarioPainelController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req) {
+    const usuarioId = req.user.id;
+
+     // Primeiro busca o usuarioPainel para obter o painelId
+  const usuarioPainel = await this.usuarioPainelService.findOne(+id);
+  if (!usuarioPainel) {
+    throw new NotFoundException('Usuário não encontrado no painel');
+  }
+
+  const painel = await this.painelService.buscarPorId(usuarioPainel.painelId);
+  if (!painel) {
+    throw new NotFoundException('Painel não encontrado');
+  }
+
+  if (painel.usuarioId !== usuarioId) {
+    throw new ForbiddenException(
+      'Apenas o criador do painel pode remover usuários',
+    );
+  }
+
     return this.usuarioPainelService.removerUsuarioDoPainel(+id);
   }
 }

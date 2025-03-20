@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -117,4 +118,41 @@ export class UsuarioPainelService {
     });
     return !!usuarioPainel;
   }
+
+  async verificarPermissao(painelId: number, usuarioId: number, requerEditar: boolean = false): Promise<void> {
+    const painel = await this.prisma.painel.findUnique({
+      where: { id: painelId },
+    });
+
+    if (!painel) {
+      throw new NotFoundException('Painel não encontrado.');
+    }
+
+    // Se for o criador do painel, tem todas as permissões
+    if (painel.usuarioId === usuarioId) {
+      return;
+    }
+
+    // Verifica permissões para usuários convidados
+    const usuarioPainel = await this.prisma.usuarioPainel.findFirst({
+      where: {
+        painelId,
+        usuarioId,
+      },
+    });
+
+    if (!usuarioPainel) {
+      throw new ForbiddenException('Usuário não tem acesso a este painel.');
+    }
+
+    if (requerEditar && usuarioPainel.permissao !== 'editar') {
+      throw new ForbiddenException('Usuário não tem permissão para realizar esta operação.');
+    }
+  }
+
+    async findOne(id: number) {
+        return this.prisma.usuarioPainel.findUnique({
+        where: { id },
+        });
+    }
 }

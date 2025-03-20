@@ -8,9 +8,7 @@ export class CreateUsuarioPainelDto {
     @IsString()
     @IsNotEmpty()
     email: string;
-
     
-
     @IsInt()
     @IsNotEmpty()
     painelId: number;

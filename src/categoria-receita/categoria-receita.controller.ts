@@ -34,6 +34,12 @@ export class CategoriaReceitaController {
   ) {
     const usuarioId = req.user.id;
 
+    await this.usuarioPainelService.verificarPermissao(
+        createCategoriaReceitaDto.painelId,
+        usuarioId,
+        true
+      );
+
     // Verificar se o usuário tem acesso ao painel
     const painel = await this.painelService.buscarPorId(
       createCategoriaReceitaDto.painelId,
@@ -133,6 +139,16 @@ export class CategoriaReceitaController {
     const categoria =
       await this.categoriaReceitaService.buscarPorId(categoriaId);
 
+    if (!categoria) {
+      throw new NotFoundException('Categoria de receita não encontrada');
+    }
+
+    await this.usuarioPainelService.verificarPermissao(
+        categoria.painelId,
+        usuarioId,
+        true
+      );
+
     // Verificar se o usuário tem acesso ao painel da categoria
     const painel = await this.painelService.buscarPorId(categoria.painelId);
 
@@ -166,8 +182,17 @@ export class CategoriaReceitaController {
     const categoriaId = parseInt(id);
 
     // Buscar a categoria para verificar o painel
-    const categoria =
-      await this.categoriaReceitaService.buscarPorId(categoriaId);
+    const categoria = await this.categoriaReceitaService.buscarPorId(categoriaId);
+
+    if (!categoria) {
+      throw new NotFoundException('Categoria de receita não encontrada');
+    }
+
+    await this.usuarioPainelService.verificarPermissao(
+        categoria.painelId,
+        usuarioId,
+        true
+      );
 
     // Verificar se o usuário tem acesso ao painel da categoria
     const painel = await this.painelService.buscarPorId(categoria.painelId);

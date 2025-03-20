@@ -43,6 +43,12 @@ export class DespesaCategoriaController {
             throw new NotFoundException('Painel não encontrado');
         }
 
+        await this.usuarioPainelService.verificarPermissao(
+            createDespesaCategoriaDto.painelId,
+            usuarioId,
+            true
+          );
+
         // Verifica se é proprietário ou se está convidado no painel
         const temPermissao =
             painel.usuarioId === usuarioId ||
@@ -59,13 +65,6 @@ export class DespesaCategoriaController {
 
         return this.despesaCategoriaService.create(createDespesaCategoriaDto);
     }
-
-    // Substituído por buscarPorPainelId
-    // @Get('usuario/')
-    // buscarPorUsuarioId(@Req() req) {
-    //     const usuarioId = req.user.id;
-    //     return this.despesaCategoriaService.uscarPorUsuarioId(+usuarioId);
-    // }
 
     @Get('painel/:painelId')
     async buscarPorPainelId(
@@ -156,6 +155,12 @@ export class DespesaCategoriaController {
             throw new NotFoundException('Categoria de despesa não encontrada');
         }
 
+        await this.usuarioPainelService.verificarPermissao(
+            categoria.painelId,
+            usuarioId,
+            true
+          );
+
         // Verificar se o usuário tem acesso ao painel da categoria
         const painel = await this.painelService.buscarPorId(categoria.painelId);
 
@@ -213,6 +218,12 @@ export class DespesaCategoriaController {
         if (!categoria) {
             throw new NotFoundException('Categoria de despesa não encontrada');
         }
+
+        await this.usuarioPainelService.verificarPermissao(
+            categoria.painelId,
+            usuarioId,
+            true
+          );
 
         // Verificar se o usuário tem acesso ao painel da categoria
         const painel = await this.painelService.buscarPorId(categoria.painelId);
